@@ -2,7 +2,17 @@
 const express = require('express');
 const router = express.Router();
 
-const {getAllContacts,getContact,createContact,updateContact,deleteContact} = require("../controllers/contactController")  
+const {
+    getAllContacts,
+    getContact,
+    createContact,
+    updateContact,
+    deleteContact
+} = require("../controllers/contactController");  
+const validateToken = require('../midddleware/validataTokenHandler');
+
+// for imposing validateroute on all users
+router.use(validateToken)
 //get all
 router.get("/",getAllContacts)
 

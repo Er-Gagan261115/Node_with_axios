@@ -3,7 +3,7 @@ const asyncHandler = require('express-async-handler');
 const Contact = require("../models/contactModel.js");
 
 const getAllContacts = asyncHandler(async (req, res) => {
-   const contacts = await Contact.find();
+   const contacts = await Contact.find({user_id:req.user.id});
    res.status(200).json(contacts)
 })
 
@@ -29,7 +29,8 @@ const createContact = asyncHandler(async (req, res) => {
    const contact = await Contact.create({
       name,
       email,
-      phone
+      phone,
+      user_id:req.user.id
    })
    console.log(contact);
    res.status(201).json(contact)
@@ -37,6 +38,17 @@ const createContact = asyncHandler(async (req, res) => {
 })
 
 const updateContact = asyncHandler(async (req, res) => {
+   const contact = await Contact.findById(req.params.id);
+   if(!contact)
+   {
+      res.status(404);
+      throw new Error("Contact Not Found")
+   }
+   if(contact.user_id.toString()!== req.user.id)
+   {
+      res.status(400);
+      throw new Error("User don't have permission to update")
+   }
    const updatedContact = await Contact.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -54,8 +66,13 @@ const deleteContact = asyncHandler(async (req, res) => {
       res.status(404);
       throw new Error("Contact Not Found")
    }
+   if(contact.user_id.toString()!== req.user.id)
+   {
+      res.status(400);
+      throw new Error("User don't have permission to delete")
+   }
    // await contact.d
-    await contact.deleteOne();
+    await contact.deleteOne({_id:req.params.id});
    res.status(200).json(contact);
 })
 
